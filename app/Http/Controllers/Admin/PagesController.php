@@ -60,6 +60,9 @@ class PagesController extends Controller
 	            $page->heading      = $request->heading;
 	            $page->language_id  = $request->language;
 	            $page->details      = $request->details_content;
+	            $page->meta_title   = $request->meta_title;
+	            $page->meta_key     = $request->meta_key;
+	            $page->meta_des     = $request->meta_description;
 	            if($page->save())
 	            {
 	                $error['error']     = false;
@@ -111,6 +114,9 @@ class PagesController extends Controller
 	            $page->heading      = $request->heading;
 	            $page->language_id  = $request->language;
 	            $page->details      = $request->details_content;
+	            $page->meta_title   = $request->meta_title;
+	            $page->meta_key     = $request->meta_key;
+	            $page->meta_des     = $request->meta_description;
 	            if($page->update())
 	            {
 	                $error['error']     = false;

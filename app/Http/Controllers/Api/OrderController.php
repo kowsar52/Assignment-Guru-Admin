@@ -16,6 +16,7 @@ use App\Models\Settings;
 use App\Models\Bid;
 use App\Models\Review;
 use App\Models\Coupon;
+use App\Models\SaveOrder;
 use Carbon\Carbon;
 use Auth;
 
@@ -218,8 +219,12 @@ class OrderController extends Controller
 
         $query = Order::select('orders.*', 'products.title as product_title', 'languages.title as language_title')
             ->join('products', 'products.id', '=', 'orders.product')
-            ->join('languages', 'languages.id', '=', 'orders.language')
-            ->where('orders.customer', Auth::user()->id);
+            ->join('languages', 'languages.id', '=', 'orders.language');
+        if( Auth::user()->role == 'writer'){
+            $query->where('orders.writer', Auth::user()->id);
+        }else{
+            $query->where('orders.customer', Auth::user()->id);
+        }
         if(isset($_GET['searchText'])){
             $query->where('orders.topic', 'like', '%' . $_GET['searchText'] . '%');
         }
@@ -279,8 +284,39 @@ class OrderController extends Controller
     //get getOrderDetails
     public function getOrderDetails($id){
         $order = Order::findOrFail($id);
+        if(Auth::user()->role == "writer"){
+            $checkBid = Bid::where('order_id',$id)->where('writer_id',Auth::user()->id)->count();
+            if($checkBid > 0){
+                $alreadyBid = true;
+            }else{
+                $alreadyBid = false;
+            }
+        }else{
+            $alreadyBid = false;
+        }
+
+        if(Auth::user()->role == "writer"){
+            $checkBid = SaveOrder::where('order_id',$id)->where('user_id',Auth::user()->id)->count();
+            if($checkBid > 0){
+                $orderSaved = true;
+            }else{
+                $orderSaved = false;
+            }
+        }else{
+            $orderSaved = false;
+        }
+        if(Auth::user()->role == "writer"){
+            $isDelivered = false;
+        }else{
+            $isDelivered = false;
+        }
+
         return response()->json([
             'success' => true,
+            'alreadyBid' =>  $alreadyBid,
+            'orderSaved' =>  $orderSaved,
+            'isDelivered' =>  $isDelivered,
+            'isCompleted' =>  $order->isCompleted,
             'main_order' => $order,
             'product' => Product::findOrFail($order->product)->title,
             'level' => EducationLevel::findOrFail($order->level)->title,

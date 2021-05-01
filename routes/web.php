@@ -20,6 +20,9 @@ Route::get('/clear-cache', function () {
     return back()->with('success','Cache Cleared Successfully!');
 });
 
+Route::get('/checkout/payment/cancle', 'Front\PaymentController@paypalCancel')->name('payment.cancle');
+Route::get('/checkout/payment/notify', 'Front\PaymentController@paypalNotify')->name('payment.notify');
+
 
 //admin routes
 Route::any('admin/login', 'Admin\AdminController@login')->name('admin/login');
@@ -102,4 +105,10 @@ Route::group(['middleware'=>['admin']],function(){
     Route::any('admin/theme/add-order-page-content', 'Admin\ThemeController@AddOrderPageContent');
     Route::any('admin/theme/edit-order-page-content/{id}', 'Admin\ThemeController@EditOrderPageContent');
     Route::post('admin/theme/delete-order-page-content', 'Admin\ThemeController@DeleteOrderPageContent');
+
+    //theme management Honor Code
+    Route::get('admin/theme/honor-codes', 'Admin\ThemeController@HonorCodes');
+    Route::any('admin/theme/add-honor-code', 'Admin\ThemeController@AddHonorCode');
+    Route::any('admin/theme/edit-honor-code/{id}', 'Admin\ThemeController@EditHonorCode');
+    Route::post('admin/theme/delete-honor-code', 'Admin\ThemeController@DeleteHonorCode');
 });

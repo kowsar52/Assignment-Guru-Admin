@@ -59,6 +59,7 @@
                 <li><a href="{{url('admin/home/writing-service-features')}}">Writing Service Features</a></li>
                 <li><a href="{{url('admin/home/frequently-asked-questions')}}">Frequently Asked Questions</a></li>
                 <li><a href="{{url('admin/theme/order-page-contents')}}">Order Page Contents</a></li>
+                <li><a href="{{url('admin/theme/honor-codes')}}">Honor Code</a></li>
             </ul>
           </li>
           <li>

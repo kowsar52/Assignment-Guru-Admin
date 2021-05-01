@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Language;
+use App\Models\HonorCode;
 use App\Models\ThemeOrderContent;
 use App\Models\HomeWritingFeature;
 use App\Models\FrequentlyAskedQuestion;
@@ -419,6 +420,171 @@ class ThemeController extends Controller
     		if($FrequentlyAskedQuestion != false)
     		{
     			$FrequentlyAskedQuestion->delete();
+    			$msg = 1;
+    		}else{
+    			$msg = 2;
+    		}
+    	}
+    	echo $msg;
+    	die;
+    }
+    
+    public function HonorCodes(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = HonorCode::select();
+       
+            return DataTables::of($data)
+                    ->addIndexColumn()
+                    ->editColumn('language', function($row){
+                        $lang = Language::find($row->language_id);
+                        return $lang->title;
+                    })
+                    ->addColumn('action', function($row){
+                        $btn = '<div aria-label="..." role="group" class="btn-group btn-group">
+                        <a href="'.url('admin/theme/edit-honor-code',$row->id).'" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="#" onclick="delete_content('.$row->id.')" class="btn btn-danger btn-sm">Delete</a>'; 
+                        return $btn;
+                    })
+                    ->rawColumns(['action','language'])
+                    ->make(true);
+        }
+        return view('admin.theme.honor.index');
+    }
+    public function AddHonorCode(Request $request)
+    {
+        if ($request->isMethod('post')) {
+           
+            $validator = Validator::make($request->all(), [
+                'image'         => 'required',
+                'language'      => 'required',
+	            'title'         => 'required',
+	            'description'   => 'required',
+            ]);
+            if($validator->passes()) {
+	            
+	            $file_path = 'empty';
+	            if ($request->file('image')) {
+
+                    $image 				= $request->file('image');
+                    $image_name 		= time().'_'.rand(10000,9999999).'.' . $image->getClientOriginalExtension();
+                    $destinationPath 	= 'uploads/images';
+                    $image->move($destinationPath,$image_name);
+                    $file_path 			= "uploads/images/" . $image_name;
+    
+                }
+	                
+                    $HonorCode = new HonorCode();
+    	            $HonorCode->language_id     = $request->language;
+    	            $HonorCode->title           = $request->title;
+    	            $HonorCode->description     = $request->description;
+    	            $HonorCode->image           = $file_path;
+    	            if($HonorCode->save())
+    	            {
+    	                $error['error']     = false;
+                        $error['check']     = false;
+                        $error['message']   = 'Successfully Saved';
+    	            }else{
+    	                
+    	                $error['error']     = false;
+                        $error['check']     = false;
+                        $error['message']   = 'Save failed';
+    	            }
+    	            
+	        }else{
+	            
+                $error['error']     = true;
+                $error['check']     = true;
+                $error['message']   = $validator->errors()->getMessages();
+            }
+            
+            return response()->json($error);
+            
+        }
+        $data['languages']          = Language::where('status',1)->get();
+        return view('admin.theme.honor.create',$data);
+    }
+    public function EditHonorCode(Request $request,$id)
+    {
+        $HonorCode = HonorCode::where('id',$id)->first();
+        if($HonorCode == false)
+        {
+            return redirect()->back();
+        }
+        if ($request->isMethod('post')) {
+           
+            $validator = Validator::make($request->all(), [
+                'language'      => 'required',
+	            'title'         => 'required',
+	            'description'   => 'required',
+            ]);
+            if($validator->passes()) {
+	            
+	                $HonorCode->language_id     = $request->language;
+    	            $HonorCode->title           = $request->title;
+    	            $HonorCode->description     = $request->description;
+    	            
+	            if ($request->file('image')) {
+	                
+	                $path = base_path()."/public/".$HonorCode->image;
+                    if($HonorCode->image != '')
+                    {
+                        if (file_exists($path)) {
+                            unlink($path);
+                        }
+                    }
+                    $image 				= $request->file('image');
+                    $image_name 		= time().'_'.rand(10000,9999999).'.' . $image->getClientOriginalExtension();
+                    $destinationPath 	= 'uploads/images';
+                    $image->move($destinationPath,$image_name);
+                    $file_path 			= "uploads/images/" . $image_name;
+                    $HonorCode->image           = $file_path;
+                }
+	                
+    	            
+    	            
+    	            if($HonorCode->update())
+    	            {
+    	                $error['error']     = false;
+                        $error['check']     = false;
+                        $error['message']   = 'Successfully Updated';
+    	            }else{
+    	                
+    	                $error['error']     = false;
+                        $error['check']     = false;
+                        $error['message']   = 'Update failed';
+    	            }
+    	            
+	        }else{
+	            
+                $error['error']     = true;
+                $error['check']     = true;
+                $error['message']   = $validator->errors()->getMessages();
+            }
+            
+            return response()->json($error);
+            
+        }
+        $data['content']            = $HonorCode;
+        $data['languages']          = Language::where('status',1)->get();
+        return view('admin.theme.honor.edit',$data);
+    }
+    
+    public function DeleteHonorCode(Request $request)
+    {
+        $msg = 2;
+    	if ($request->isMethod('post')) {
+    		$HonorCode = HonorCode::where('id',$request->id)->first();
+    		if($HonorCode != false)
+    		{
+    		    $path = base_path()."/public/".$HonorCode->image;
+                    if($HonorCode->image != '')
+                    {
+                        if (file_exists($path)) {
+                            unlink($path);
+                        }
+                    }
+    			$HonorCode->delete();
     			$msg = 1;
     		}else{
     			$msg = 2;

@@ -34,6 +34,8 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
     Route::get('/get-writers', 'Api\FrontendController@getWriters');
     Route::get('/get-services', 'Api\FrontendController@getServices');
     Route::get('/get-reviews', 'Api\FrontendController@getReviews');
+    Route::get('/get-writing-service-features', 'Api\FrontendController@getWritingServiceFeatures');
+    Route::get('/get-FAQs', 'Api\FrontendController@getFAQs');
     
     
     Route::middleware('auth:api')->prefix('user')->group(function () {
@@ -75,6 +77,16 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
 
         //writer api
         Route::get('writer/find-orders', 'Api\Writer\OrderController@findOrders')->middleware('role:writer');
+        Route::post('writer/submit-proposal', 'Api\Writer\OrderController@SubmitProposal')->middleware('role:writer');
+        Route::get('writer/save-order/{id}', 'Api\Writer\OrderController@saveOrder')->middleware('role:writer');
+        Route::get('writer/get-bids/{status}', 'Api\Writer\OrderController@getBids')->middleware('role:writer');
+        Route::get('/writer/bid/decline/{bid_id}', 'Api\Writer\OrderController@declineBid')->middleware('role:writer');
+        Route::get('/writer/edit-bid/{bid_id}', 'Api\Writer\OrderController@editBid')->middleware('role:writer');
+        
+        //payment route
+        Route::get('/payment-getway', 'Api\PaymentController@getPaymentGetway');
+        Route::post('/stipe-charge-create', 'Api\PaymentController@stripeChargeCreate');
+        Route::post('paypal-payment-create', 'Api\PaymentController@paypalPaymentCreate');
         
     });
     Route::get('download/message/file/{id}','Api\MessagesController@downloadFileZip');

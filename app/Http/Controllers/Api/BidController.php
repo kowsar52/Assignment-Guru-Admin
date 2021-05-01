@@ -17,7 +17,7 @@ class BidController extends Controller
     public function getBidders($id,$type){
         $per_page = isset($_GET['per_page']) ? $_GET['per_page'] : 6 ;
         if($type == 'bids'){
-            $data = Bid::select('users.*','bids.id as bid_id','bids.order_id as order_id','bids.shortlisted as shortlisted','bids.decline','bids.bidding_price','bids.created_at as bid_at')
+            $data = Bid::select('users.*','bids.id as bid_id', 'bids.message as bid_message','bids.order_id as order_id','bids.shortlisted as shortlisted','bids.decline','bids.bidding_price','bids.created_at as bid_at')
                         ->join('users','users.id','=','bids.writer_id')
                         ->where('bids.order_id',$id)
                         ->orderBy('bids.created_at','desc')->paginate($per_page);
@@ -27,7 +27,7 @@ class BidController extends Controller
                                 ->where('invite_writers.order_id',$id)
                                 ->orderBy('invite_writers.created_at','desc')->paginate($per_page);
         }else{
-            $data = Bid::select('users.*','bids.id as bid_id','bids.order_id as order_id','bids.shortlisted as shortlisted','bids.decline','bids.bidding_price','bids.created_at as bid_at')
+            $data = Bid::select('users.*','bids.id as bid_id', 'bids.message as bid_message','bids.order_id as order_id','bids.shortlisted as shortlisted','bids.decline','bids.bidding_price','bids.created_at as bid_at')
                         ->join('users','users.id','=','bids.writer_id')
                         ->where('bids.order_id',$id)
                         ->where('bids.shortlisted',1)

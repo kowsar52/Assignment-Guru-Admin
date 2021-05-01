@@ -16,11 +16,29 @@ use App\Models\Settings;
 use App\Models\User;
 use App\Models\WriterOrder;
 use App\Models\Review;
+use App\Models\ThemeOrderContent;
+use App\Models\HomeWritingFeature;
+use App\Models\FrequentlyAskedQuestion;
 use Carbon\Carbon;
 use Auth,Cache;
 
 class FrontendController extends Controller
 {
+    public $language_id = null;
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+        if($request->get('locale')){
+            $lang = Language::where('code',$request->get('locale'))->first();
+            if(!empty($lang)){
+                $this->language_id = $lang->id;
+            }else{
+                $this->language_id = Language::orderBy('id','asc')->first()->id;
+            }
+        }else{
+            $this->language_id = Language::orderBy('id','asc')->first()->id;
+        }
+    }
 //get language
     public function getLanguage(){
         return response()->json([
@@ -170,6 +188,39 @@ class FrontendController extends Controller
         return response()->json([
             'success' => true,
             'data' => $res,
+        ]);
+    }
+
+    //getWritingServiceFeatures
+    public function getWritingServiceFeatures(){
+        $res = HomeWritingFeature::where('language_id', $this->language_id)
+                        ->orderBy('created_at','asc')
+                        ->limit(6)
+                        ->get();
+
+    
+        return response()->json([
+            'success' => true,
+            'data' => $res,
+        ]);
+    }
+
+    //getFAQs
+    public function getFAQs(){
+        $res = FrequentlyAskedQuestion::where('language_id', $this->language_id)
+                        ->orderBy('created_at','asc')
+                        ->limit(16)
+                        ->get();
+        $left_side = array_slice($res->toArray() , 0, count($res) / 2);
+        $right_side = array_slice($res->toArray() , count($res) / 2);
+     
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'left_side' => $left_side,
+                'right_side' => $right_side,
+            ],
         ]);
     }
 }
