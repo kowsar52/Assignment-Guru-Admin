@@ -20,9 +20,13 @@ use Carbon\Carbon;
 use App\Models\Conversations;
 use App\Models\Messages;
 use App\Models\SaveOrder;
+use App\Models\OrderStatus;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryFile;
+use App\Models\OrderStatusTrack;
 use App\Helper;
 use Illuminate\Support\Facades\Http;
-use Auth;
+use Auth, Validator, Image;
 
 
 class OrderController extends Controller
@@ -177,7 +181,9 @@ class OrderController extends Controller
                 //get writer total order 
                 $total_bids = Bid::where('order_id',$order->id)->count();
                 $rate = Review::where('order_id',$order->id)->first();
+                $status = OrderStatus::findOrFail($order->status);
                 $extra=[
+                    'status' => $status,
                     'total_bids' => $total_bids,
                     'rate' =>isset( $rate->star) ? $rate->star : null,
                 ];
@@ -235,4 +241,109 @@ class OrderController extends Controller
             'deadline' => date('d M Y, h:i:s A',strtotime($order->deadline)),
         ]);
     }
+
+
+    //////upload delivery
+    public function uploadDelivery(Request $request)
+    {
+
+        if (!Auth::check()) {
+            return response()->json(array('session_null' => true));
+        }
+
+        // Setup the validator
+        $rules = [
+            'files' => 'required',
+            'message' => 'required|min:1|max:' . Settings::getOption('comment_length') . '',
+        ];
+
+        $messages = [
+            "required" => trans('validation.required'),
+            "message.max" => trans('validation.max.string'),
+            'files.dimensions' => trans('general.validate_dimensions'),
+            'files.mimetypes' => trans('general.formats_available'),
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        // Validate the input and return correct response
+        if ($validator->fails()) {
+            return response()->json(array(
+                'success' => false,
+                'errors' => $validator->getMessageBag()->toArray(),
+            ));
+        }
+
+        // $settings = AdminSettings::first();
+
+        // PATHS
+        $path = config('path.delivery');
+
+        $sizeAllowed = Settings::getOption('MAX_FILE_SIZE_ALLOW') * 1024;
+
+        // Find order in Database
+        $order = Order::findOrFail($request->order_id);
+        $files = $request->file('files');
+
+        if($request->hasFile('files'))
+        {
+            $allowedfileExtension=['pdf','jpg','png','docx','zip','jpeg'];
+            $files = $request->file('files');
+            $file_ids = [];
+            foreach($files as $file){
+                $filename = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $check=in_array($extension,$allowedfileExtension);
+                //dd($check);
+                if($check)
+                {
+                    // $filename = $photo->store('files');
+                    // $file->move($destinationPath,$file->getClientOriginalName());
+                    $file->storePubliclyAs($path, $filename);
+                    $file_ids[] = OrderDeliveryFile::insertGetId([
+                        'order_id' => $order->id,
+                        'file' => $filename,
+                        'original_name' => $filename,
+                        'format' => $file->getClientOriginalExtension(),
+                        'size' => $file->getSize(),
+                        'details' => $request->message,
+                        'created_at' => Carbon::now(),
+                    ]);
+                    
+                }
+                else
+                {
+                    return response()->json(array(
+                        'success' => false,
+                        'order_id' => $order->id,
+                    ), 200);
+                }
+            }
+
+            if(!empty($file_ids)){
+                Order::where('id',$order->id)->update([
+                    'status' => 4, //delivered
+                    'updated_at' => Carbon::now(),
+                ]);
+                OrderStatusTrack::insert([
+                    'status_id' => 4, //completed
+                    'order_id' => $order->id,
+                    'created_at' => Carbon::now(),
+                ]);
+                OrderDelivery::insert([
+                    'order_id' => $order->id,
+                    'delivery_files' =>json_encode($file_ids),
+                    'message' => $request->message,
+                    'created_at' => Carbon::now(),
+                ]);
+            }
+            return response()->json(array(
+                'success' => true,
+                'order_id' => $order->id,
+            ), 200);
+
+        }
+
+
+    } //<<--- End Method uploadDelivery()
 }

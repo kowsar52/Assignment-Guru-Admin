@@ -111,4 +111,32 @@ Route::group(['middleware'=>['admin']],function(){
     Route::any('admin/theme/add-honor-code', 'Admin\ThemeController@AddHonorCode');
     Route::any('admin/theme/edit-honor-code/{id}', 'Admin\ThemeController@EditHonorCode');
     Route::post('admin/theme/delete-honor-code', 'Admin\ThemeController@DeleteHonorCode');
+    
+    // orders
+    Route::get('admin/orders/orders', 'Admin\OrderController@Orders');
+    Route::any('admin/orders/order/edit', 'Admin\OrderController@EditOrder');
+    Route::get('admin/orders/order/delete/{id}', 'Admin\OrderController@DeleteOrder');
+    
+    // bids
+    Route::get('admin/orders/bids', 'Admin\OrderController@Bids');
+    Route::any('admin/orders/bids/edit', 'Admin\OrderController@EditBid');
+    Route::get('admin/orders/bids/delete/{id}', 'Admin\OrderController@DeleteBid');
+    
+    //invitation
+    Route::get('admin/orders/invitations', 'Admin\OrderController@Invitations');
+    Route::any('admin/orders/invitations/edit', 'Admin\OrderController@EditInvitation');
+    Route::get('admin/orders/invitations/delete/{id}', 'Admin\OrderController@DeleteInvitation');
+    
+    //coupons
+    Route::get('admin/coupons', 'Admin\CouponController@Index');
+    Route::any('admin/coupon/add', 'Admin\CouponController@Add');
+    Route::any('admin/coupon/edit/{id}', 'Admin\CouponController@Edit');
+    Route::any('admin/coupon/delete/{id}', 'Admin\CouponController@Destroy');
+    
+    //reviews
+    Route::get('admin/reviews', 'Admin\ReviewController@Index');
+    Route::get('admin/review/delete/{id}', 'Admin\ReviewController@Destroy');
+    
+    //payment getway
+    Route::get('admin/payment-getways', 'Admin\ReviewController@PaymentGetWay');
 });

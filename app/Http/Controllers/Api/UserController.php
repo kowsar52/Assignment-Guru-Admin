@@ -77,10 +77,18 @@ class UserController extends Controller
     //getUser
     public function getUser($id){
         $user = User::findOrFail($id);
-        $total_orders = WriterOrder::where('writer_id',$user->id)->where('status',3)->count();
-        $total_review = Review::where('user_id',$user->id)->where('type','writer')->count();
-        $reviews = Review::where('user_id',$user->id)->where('type','writer')->get();
-        $avg_rating = Review::where('user_id',$user->id)->where('type','writer')->avg('star');
+        if(Auth::user()->role == 'writer'){
+            $total_orders = WriterOrder::where('writer_id',$user->id)->where('status',3)->count();
+            $total_review = Review::where('user_id',$user->id)->where('type','writer')->count();
+            $reviews = Review::where('user_id',$user->id)->where('type','writer')->get();
+            $avg_rating = Review::where('user_id',$user->id)->where('type','writer')->avg('star');
+            
+        }else{    
+            $total_orders = Order::where('customer',$user->id)->where('status',3)->count();
+            $total_review = Review::where('user_id',$user->id)->where('type','buyer')->count();
+            $reviews = Review::where('user_id',$user->id)->where('type','buyer')->get();
+            $avg_rating = Review::where('user_id',$user->id)->where('type','buyer')->avg('star');
+        }
         if (Cache::has('is-online-' . $user->id)) {
             $isOnline = true;
         } else {
@@ -93,6 +101,7 @@ class UserController extends Controller
             'last_name' => $user->last_name,
             'about' => $user->about,
             'short_about' => $user->short_about,
+            'country' => $user->country,
             'avater' => $user->avater,
             'status' => $user->status,
             'total_orders' => $total_orders,

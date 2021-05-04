@@ -15,7 +15,7 @@ return array(
     'messages' => 'uploads/messages/',
 
     // Verification User
-    'verification' => 'uploads/verification/',
+    'delivery' => 'uploads/delivery/',
 
     // Admin (Pages and Blog Post)
     'admin' => 'uploads/admin/',

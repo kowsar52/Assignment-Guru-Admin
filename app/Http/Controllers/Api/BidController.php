@@ -135,4 +135,10 @@ class BidController extends Controller
             'message' => "Updated successfully!",
         ]);
     }
+
+    //getBid
+    public function getBid($bid_id){
+        $data = Bid::where('id',$bid_id)->first();
+        return response()->json($data);
+    }
 }

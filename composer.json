@@ -13,9 +13,8 @@
         "laravel/framework": "^8.12",
         "laravel/tinker": "^2.5",
         "league/glide-laravel": "^1.0",
-        "paypal/rest-api-sdk-php": "^1.14",
-        "srmklive/paypal": "^3.0",
         "stripe/stripe-php": "^7.77",
+        "paypal/rest-api-sdk-php": "^1.14",
         "tymon/jwt-auth": "^1.0",
         "yajra/laravel-datatables-oracle": "~9.0"
     },

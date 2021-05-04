@@ -46,8 +46,11 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
         Route::get('/get-order-details/{id}', 'Api\OrderController@getOrderDetails');
         Route::get('/get-orders/{status}', 'Api\OrderController@getOrders');
         Route::get('/delete-order/{id}', 'Api\OrderController@deleteOrder')->middleware('role:buyer');
+        Route::get('/get-order-delivery-files/{id}', 'Api\OrderController@getOrderDeliveryFiles');
+        Route::get('/order/mark-as-complete/{id}', 'Api\OrderController@completeOrder');
 
         Route::get('/order/get-bids/{id}/{type}', 'Api\BidController@getBidders')->middleware('role:buyer');
+        Route::get('/get-bid/{id}', 'Api\BidController@getBid');
         Route::get('/order/invite-writer/{id}/{order_id}', 'Api\BidController@inviteWriter')->middleware('role:buyer');
         Route::get('/order/cancel-invitation/{inviation_id}', 'Api\BidController@cancelInviteWriter')->middleware('role:buyer');
         Route::get('/bid/add-to-shortlist/{bid_id}', 'Api\BidController@addToShortList')->middleware('role:buyer');
@@ -82,11 +85,19 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
         Route::get('writer/get-bids/{status}', 'Api\Writer\OrderController@getBids')->middleware('role:writer');
         Route::get('/writer/bid/decline/{bid_id}', 'Api\Writer\OrderController@declineBid')->middleware('role:writer');
         Route::get('/writer/edit-bid/{bid_id}', 'Api\Writer\OrderController@editBid')->middleware('role:writer');
+        Route::post('/writer/upload-delivery', 'Api\Writer\OrderController@uploadDelivery')->middleware('role:writer');
         
         //payment route
         Route::get('/payment-getway', 'Api\PaymentController@getPaymentGetway');
         Route::post('/stipe-charge-create', 'Api\PaymentController@stripeChargeCreate');
         Route::post('paypal-payment-create', 'Api\PaymentController@paypalPaymentCreate');
+        
+        //download route
+        Route::get('download/delivery-file/{id}', 'Api\DownloadController@downloadDeliveryFile');
+        
+        //feedback
+        Route::get('order/get-feedbacks/{id}', 'Api\FeedbackController@getOrderFeedback');
+        Route::post('order/feedback-submit', 'Api\FeedbackController@submitFeedback');
         
     });
     Route::get('download/message/file/{id}','Api\MessagesController@downloadFileZip');

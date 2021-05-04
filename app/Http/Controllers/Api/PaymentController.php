@@ -138,59 +138,31 @@ class PaymentController extends Controller
                 'message' => 'Already Hired Another One',
             ]);
         }else{
-            $currency_code = Settings::getOption('currency_code');
-            $description = 'Order Payment!';
-            
-            $order['item_name'] = $order->topic;
-            $order['item_number'] = time();
-            $order['item_amount'] = round($bid->bidding_price, 2);
-            $cancel_url = "https://dev.to/yazansalhi/paypal-integration-in-laravel-and-vue-js-2ng8";
-            $notify_url = "https://dev.to/yazansalhi/paypal-integration-in-laravel-and-vue-js-2ng8";
-    
-            $payer = new Payer();
-            $payer->setPaymentMethod('paypal');
-            $item_1 = new Item();
-            $item_1->setName($order['item_name']) /** item name **/
-                ->setCurrency($currency_code)
-                ->setQuantity(1)
-                ->setPrice($order['item_amount']); /** unit price **/
-            $item_list = new ItemList();
-            $item_list->setItems(array($item_1));
-            $amount = new Amount();
-            $amount->setCurrency($currency_code)
-                ->setTotal($order['item_amount']);
-            $transaction = new Transaction();
-            $transaction->setAmount($amount)
-                ->setItemList($item_list)
-                ->setDescription($order['item_name'].' Via Paypal');
-            $redirect_urls = new RedirectUrls();
-            $redirect_urls->setReturnUrl($notify_url) /** Specify return URL **/
-                ->setCancelUrl($cancel_url);
-            $payment = new Payment();
-            $payment->setIntent('Sale')
-                ->setPayer($payer)
-                ->setRedirectUrls($redirect_urls)
-                ->setTransactions(array($transaction));
-            /** dd($payment->create($this->_api_context));exit; **/
-            try {
-                $payment->create($this->_api_context);
-            } catch (\PayPal\Exception\PPConnectionException $ex) {
-                return redirect()->back()->with('unsuccess',$ex->getMessage());
-            }
-            foreach ($payment->getLinks() as $link) {
-                if ($link->getRel() == 'approval_url') {
-                    $redirect_url = $link->getHref();
-                    break;
-                }
-            }
-            
+            if($request->status == "succeeded" || $request->status == 'succeeded'){
+                $order = Order::where('id',$bid->order_id)->update([
+                    'writer' => $bid->writer_id,
+                    'isHired' => 1,
+                    'paid_amount' => $bid->bidding_price,
+                    'updated_at' => Carbon::now(),
+                ]);
+                WriterOrder::insert([
+                    'order_id' => $bid->order_id,
+                    'writer_id' => $bid->writer_id,
+                    'amount' => $bid->bidding_price,
+                    'status' => 1,
+                    'created_at' => Carbon::now(),
+                ]);
 
-            if(isset($redirect_url)) {            
-                return response()->json([
-                    'redirect_url' => $redirect_url,
-                    'payment' => $payment,
+                //send message 
+                $token = $request->header('Authorization');
+                $response = Http::withHeaders([
+                    'Authorization' => $token,
+                ])->post(url('/api/user/message/send'), [
+                    'id_user' =>$bid->writer_id,
+                    'message' => 'Order Confirmed!',
                 ]);
             }
+            return response()->json(['status' => 'success']);
 
 
         }

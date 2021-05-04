@@ -45,7 +45,7 @@
 		                            <label class="col-lg-3 col-form-label" for="favicon">favicon icon</label>
 		                            <div class="col-lg-6">
 		                                <input type="file" class="form-control" id="favicon" name="setting[favicon]">
-		                                <img src="{{asset('/')}}{{$setting->value}}" style="width:100px;">
+		                                <img src="{{asset('/')}}{{$setting->value}}" style="width:50px;">
 		                            </div>
 		                        </div>
 	                        @elseif($setting->name == 'logo')
@@ -53,7 +53,15 @@
 		                            <label class="col-lg-3 col-form-label" for="logo">Logo</label>
 		                            <div class="col-lg-6">
 		                                <input type="file" class="form-control" id="logo" name="setting[logo]">
-		                                <img src="{{asset('/')}}{{$setting->value}}" style="width:200px;">
+		                                <img src="{{asset('/')}}{{$setting->value}}" style="width:150px;">
+		                            </div>
+		                        </div>
+							@elseif($setting->name == 'default_avater')
+	                        	<div class="form-group row">
+		                            <label class="col-lg-3 col-form-label" for="default_avater">Default Avater</label>
+		                            <div class="col-lg-6">
+		                                <input type="file" class="form-control" id="default_avater" name="setting[default_avater]">
+		                                <img src="{{asset('/')}}{{$setting->value}}" style="width:70px;margin: 5px">
 		                            </div>
 		                        </div>
 		                    @else

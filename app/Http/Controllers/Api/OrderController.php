@@ -17,6 +17,11 @@ use App\Models\Bid;
 use App\Models\Review;
 use App\Models\Coupon;
 use App\Models\SaveOrder;
+use App\Models\OrderStatus;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryFile;
+use App\Models\OrderStatusTrack;
+use App\Models\User;
 use Carbon\Carbon;
 use Auth;
 
@@ -87,16 +92,16 @@ class OrderController extends Controller
         $discount_percentage = 0;
         $diff_duration = 0;
 
-        if($request->deadline && $request->product && $request->service && $request->level){
+        if($request->UTCdeadline && $request->product && $request->service && $request->level){
             $today = date("Y-m-d H:i:s");
 
             $today_time = strtotime($today);
-            $deadline = strtotime($request->deadline);
+            $deadline = strtotime($request->UTCdeadline);
 
             if ($deadline > $today_time) { 
                 //get duration
                 $to = date("Y-m-d H:i:s");
-                $from = date('Y-m-d H:i:s', strtotime($request->deadline));
+                $from = date('Y-m-d H:i:s', strtotime($request->UTCdeadline));
                 $date1=date_create($to);
                 $date2=date_create($from);
                 $different_days=date_diff($date1,$date2);
@@ -154,16 +159,16 @@ class OrderController extends Controller
         $discount_percentage = 0;
         $diff_duration = 0;
 
-        if($request->deadline && $request->product && $request->service && $request->level){
+        if($request->UTCdeadline && $request->product && $request->service && $request->level){
             $today = date("Y-m-d H:i:s");
 
             $today_time = strtotime($today);
-            $deadline = strtotime($request->deadline);
+            $deadline = strtotime($request->UTCdeadline);
 
             if ($deadline > $today_time) { 
                 //get duration
                 $to = date("Y-m-d H:i:s");
-                $from = date('Y-m-d H:i:s', strtotime($request->deadline));
+                $from = date('Y-m-d H:i:s', strtotime($request->UTCdeadline));
                 $date1=date_create($to);
                 $date2=date_create($from);
                 $different_days=date_diff($date1,$date2);
@@ -219,7 +224,8 @@ class OrderController extends Controller
 
         $query = Order::select('orders.*', 'products.title as product_title', 'languages.title as language_title')
             ->join('products', 'products.id', '=', 'orders.product')
-            ->join('languages', 'languages.id', '=', 'orders.language');
+            ->join('languages', 'languages.id', '=', 'orders.language')
+            ->join('order_status', 'order_status.id', '=', 'orders.status');
         if( Auth::user()->role == 'writer'){
             $query->where('orders.writer', Auth::user()->id);
         }else{
@@ -228,8 +234,12 @@ class OrderController extends Controller
         if(isset($_GET['searchText'])){
             $query->where('orders.topic', 'like', '%' . $_GET['searchText'] . '%');
         }
-        if($status != 0){
-            $query->where('orders.status',  $status);
+        if($status == 'active'){
+            $query->where('order_status.slug',  $status)->orWhere('order_status.slug', 'in_progress')->orWhere('order_status.slug', 'delivered');
+        }else if($status == 'all'){
+           
+        }else{
+            $query->where('order_status.slug',  $status);
         }
 
         $orders = $query->orderBy('orders.id', 'desc')->paginate($per_page);
@@ -239,7 +249,9 @@ class OrderController extends Controller
                 //get writer total order 
                 $total_bids = Bid::where('order_id',$order->id)->count();
                 $rate = Review::where('order_id',$order->id)->first();
+                $status = OrderStatus::findOrFail($order->status);
                 $extra=[
+                    'status' => $status,
                     'total_bids' => $total_bids,
                     'rate' =>isset( $rate->star) ? $rate->star : null,
                 ];
@@ -271,6 +283,39 @@ class OrderController extends Controller
         ]);
     }
 
+    //getOrderDeliveryFiles
+    public function getOrderDeliveryFiles($order_id){
+       
+        $delivery_files= OrderDelivery::where('order_id', $order_id)->orderBy('created_at','asc')->get();
+        foreach($delivery_files as $delivery_file){
+            $ids = json_decode($delivery_file->delivery_files);
+            $array_files = [];
+            foreach( $ids as $df_id){
+                $datas = OrderDeliveryFile::where('id', $df_id)->where('order_id', $order_id)->orderBy('created_at','asc')->get();
+                if(count($datas) > 0){
+                    foreach($datas as $data ){
+                        $imageMsg = asset('storage/'.config('path.delivery').$data->file);
+                        $array_files[] = [
+                            'id' => $data->id,
+                            'file_name' => $data->file,
+                            'size' => $data->size,
+                        ];
+                    }
+                }
+            }
+
+            $res[] =[
+                'id' =>$delivery_file->id,
+                'message' =>$delivery_file->message,
+                'files' =>$array_files,
+                'created_at' =>$data->created_at,
+            ];
+
+        }
+
+        return response()->json($res);
+    }
+
     //delete order
     public function deleteOrder($id){
         $order = Order::findOrFail($id);
@@ -286,12 +331,18 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         if(Auth::user()->role == "writer"){
             $checkBid = Bid::where('order_id',$id)->where('writer_id',Auth::user()->id)->count();
+            $user = User::findOrFail($order->customer);
             if($checkBid > 0){
                 $alreadyBid = true;
             }else{
                 $alreadyBid = false;
             }
         }else{
+            if($order->writer){
+                $user = User::findOrFail($order->writer);
+            }else{
+                $user = [];
+            }
             $alreadyBid = false;
         }
 
@@ -310,6 +361,7 @@ class OrderController extends Controller
         }else{
             $isDelivered = false;
         }
+        
 
         return response()->json([
             'success' => true,
@@ -317,6 +369,8 @@ class OrderController extends Controller
             'orderSaved' =>  $orderSaved,
             'isDelivered' =>  $isDelivered,
             'isCompleted' =>  $order->isCompleted,
+            'status' =>  OrderStatus::find($order->status),
+            'user' => $user,
             'main_order' => $order,
             'product' => Product::findOrFail($order->product)->title,
             'level' => EducationLevel::findOrFail($order->level)->title,
@@ -325,6 +379,7 @@ class OrderController extends Controller
             'citiation_style' => $order->citiation_style ? CitationStyle::findOrFail($order->citiation_style)->title : '',
             'subject' => $order->subject ? Subject::findOrFail($order->subject)->title : '',
             'deadline' => date('d M Y, h:i:s A',strtotime($order->deadline)),
+            'UTCdeadline' => date('d M Y, h:i:s A',strtotime($order->UTCdeadline)),
         ]);
     }
 
@@ -363,7 +418,7 @@ class OrderController extends Controller
                     'description' =>  $request->description,
                     'discount' => $get_price['discount_percentage'],
                     'for_final_date' =>  $request->for_final_date,
-                    'initial_deadline' =>  $request->initial_deadline,
+                    'UTCdeadline' =>  date('Y-m-d H:i:s',strtotime($request->UTCdeadline)),
                     'is_private' =>  $request->is_private,
                     'language' =>  $request->language,
                     'level' =>  $request->level,
@@ -418,7 +473,7 @@ class OrderController extends Controller
             $today = date("Y-m-d H:i:s",strtotime('+3 hours'));
             $today_time = strtotime($today);
             $deadline = strtotime($request->deadline);
-
+     
             if ($deadline > $today_time) { 
                 Order::where('id',$id)->update([
                     'category' =>  $request->category,
@@ -428,7 +483,7 @@ class OrderController extends Controller
                     'description' =>  $request->description,
                     'discount' => $get_price['discount_percentage'],
                     'for_final_date' =>  $request->for_final_date,
-                    'initial_deadline' =>  $request->initial_deadline,
+                    'UTCdeadline' =>  date('Y-m-d H:i:s',strtotime($request->UTCdeadline)),
                     'is_private' =>  $request->is_private,
                     'language' =>  $request->language,
                     'level' =>  $request->level,
@@ -459,6 +514,31 @@ class OrderController extends Controller
             'status' => 'success',
             'data'=> $order
         ], 200);
+    }
+
+    //complete order
+    public function completeOrder($order_id){
+        $order = Order::where('id',$order_id)->where('customer', '=',Auth::user()->id)->first();
+        if(!empty($order)){
+            Order::where('id',$order->id)->update([
+                'status' => 5, //completed
+                'isCompleted' => 1, //completede
+                'updated_at' => Carbon::now(),
+            ]);
+            OrderStatusTrack::insert([
+                'status_id' => 5, //completed
+                'order_id' => $order->id,
+                'created_at' => Carbon::now(),
+            ]);
+            return response()->json(array(
+                'success' => true,
+                'message' => 'Order marked as completed successfully!',
+            ), 200);
+        }
+        return response()->json(array(
+            'success' => false,
+            'message' => 'Something Wrong. try again',
+        ), 200);
     }
     
 }

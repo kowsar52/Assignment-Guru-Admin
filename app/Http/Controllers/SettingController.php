@@ -13,13 +13,13 @@ class SettingController extends Controller
         
     		foreach($request->setting as $key=>$set)
     		{
-    			if($key == 'favicon' || $key == 'logo')
+    			if($key == 'favicon' || $key == 'logo' || $key == 'default_avater')
     			{
     				$image_name = time().'-'.rand(10000,99999).'.'.$set->getClientOriginalExtension();
                 	$set->move("assets/logo", $image_name);
                 	$image_path = "assets/logo/" . $image_name;
     				$setting = Settings::where('name',$key)->first();
-			        $photo_path = base_path().'/'.$setting->value;
+			        $photo_path = public_path().'/'.$setting->value;
 			        if (file_exists($photo_path)){
 			            unlink($photo_path);
 			        }
