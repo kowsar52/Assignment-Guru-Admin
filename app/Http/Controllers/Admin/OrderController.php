@@ -510,6 +510,10 @@ class OrderController extends Controller
        
             return DataTables::of($data)
                     ->addIndexColumn()
+                    ->editColumn('language_id', function($row){
+                        $lang = Language::find($row->language_id);
+                        return $lang->title;
+                    })
                     ->editColumn('status', function($row){
                         if($row->status == 1){
                             $btn = '<span class="badge badge-success">Active</span>'; 
@@ -518,20 +522,17 @@ class OrderController extends Controller
                         }
                         return $btn;
                     })
-                    ->editColumn('price', function($row){
-                            return Settings::getOption('currency').number_format($row->price, 2, '.',',');
-                    })
                     ->addColumn('action', function($row){
                         $btn = '<div aria-label="..." role="group" class="btn-group btn-group">
                         <button type="button" class="btn btn-rounded btn-warning" onclick="Edit('.$row->id.')"><i class="fa fa-edit mr-2"></i> Edit</button>
                         <button type="button" class="btn btn-rounded btn-danger" onclick="Delete('.$row->id.')"><i class="mdi mdi-delete-sweep mr-2"></i> Delete</button></div>'; 
                         return $btn;
                     })
-                    ->rawColumns(['action','status','price'])
+                    ->rawColumns(['action','status','language_id'])
                     ->make(true);
         }
-
-    	return view('admin.order.services');
+        $data['languages']          = Language::where('status',1)->get();
+        return view('admin.order.services',$data);
     }
 
     public function serviceSave(Request $request){
@@ -539,7 +540,7 @@ class OrderController extends Controller
             $validator = Validator::make($request->all(), [
                 'title'       => 'required',
                 'status'        => 'required',
-                // 'price'        => 'required',
+                'description'        => 'required',
             ]);
 
             if ($validator->passes()) {
@@ -548,6 +549,8 @@ class OrderController extends Controller
                     'title' => $request->title,
                     'price' => $request->price,
                     'status' => $request->status,
+                    'description' => $request->description,
+                    'language_id' => $request->language_id,
                     'updated_at' => Carbon::now(),
                 ]);
     
@@ -559,7 +562,7 @@ class OrderController extends Controller
             $validator = Validator::make($request->all(), [
                 'title'       => 'required',
                 'status'        => 'required',
-                // 'price'        => 'required',
+                'description'        => 'required',
             ]);
             if ($validator->passes()) {
                 
@@ -567,6 +570,8 @@ class OrderController extends Controller
                     'title' => $request->title,
                     'price' => $request->price,
                     'status' => $request->status,
+                    'description' => $request->description,
+                    'language_id' => $request->language_id,
                     'created_at' => Carbon::now(),
                 ]);
     

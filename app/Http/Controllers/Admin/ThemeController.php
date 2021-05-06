@@ -43,6 +43,7 @@ class ThemeController extends Controller
                 'language'      => 'required',
 	            'title'         => 'required',
 	            'description'   => 'required',
+	            'short_description'   => 'required',
             ]);
             if($validator->passes()) {
 	            
@@ -56,12 +57,25 @@ class ThemeController extends Controller
                     $file_path 			= "uploads/images/" . $image_name;
     
                 }
+
+	            $icon_file_path = 'empty';
+	            if ($request->file('icon')) {
+
+                    $image 				= $request->file('icon');
+                    $image_name 		= time().'_'.rand(10000,9999999).'.' . $image->getClientOriginalExtension();
+                    $destinationPath 	= 'uploads/images';
+                    $image->move($destinationPath,$image_name);
+                    $icon_file_path 			= "uploads/images/" . $image_name;
+    
+                }
 	                
                     $ThemeOrderContent = new ThemeOrderContent();
     	            $ThemeOrderContent->language_id     = $request->language;
     	            $ThemeOrderContent->title           = $request->title;
     	            $ThemeOrderContent->description     = $request->description;
+    	            $ThemeOrderContent->short_description     =$request->short_description;
     	            $ThemeOrderContent->image           = $file_path;
+    	            $ThemeOrderContent->icon           = $icon_file_path;
     	            if($ThemeOrderContent->save())
     	            {
     	                $error['error']     = false;
@@ -106,6 +120,7 @@ class ThemeController extends Controller
 	                $ThemeOrderContent->language_id     = $request->language;
     	            $ThemeOrderContent->title           = $request->title;
     	            $ThemeOrderContent->description     = $request->description;
+                    $ThemeOrderContent->short_description     =$request->short_description;
     	            
 	            if ($request->file('image')) {
 	                
@@ -122,6 +137,23 @@ class ThemeController extends Controller
                     $image->move($destinationPath,$image_name);
                     $file_path 			= "uploads/images/" . $image_name;
                     $ThemeOrderContent->image           = $file_path;
+                }
+
+	            if ($request->file('icon')) {
+	                
+	                $path = base_path()."/public/".$ThemeOrderContent->icon;
+                    if($ThemeOrderContent->icon != '')
+                    {
+                        if (file_exists($path)) {
+                            unlink($path);
+                        }
+                    }
+                    $image 				= $request->file('icon');
+                    $image_name 		= time().'_'.rand(10000,9999999).'.' . $image->getClientOriginalExtension();
+                    $destinationPath 	= 'uploads/images';
+                    $image->move($destinationPath,$image_name);
+                    $icon_file_path 			= "uploads/images/" . $image_name;
+                    $ThemeOrderContent->icon           = $icon_file_path;
                 }
 	                
     	            

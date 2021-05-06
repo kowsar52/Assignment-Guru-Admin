@@ -28,7 +28,7 @@
                 <tr>
                   <th>#</th>
                   <th>Title</th>
-                  {{-- <th>Price</th> --}}
+                  <th>Language</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -64,22 +64,32 @@
                              aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%">Loading...
                   </div>
               </div>
+              <div class="form-group ">
+                <label class= col-form-label" for="language">Language<span class="text-danger">*</span></label>
+                    <select class="form-control" id="language" name="language_id">
+                        <option value="">Select Language</option>
+                        @foreach($languages as $language)
+                             <option value="{{$language->id}}">{{$language->title}}</option>
+                        @endforeach
+                    </select>
+                    <small style="color: #ef0d0d;" id="language_id_error"></small>
+             </div>
               <div class="form-group">
                 <label for="user_name">Title</label>
                 <input type="hidden" class="form-control" name="type" value="add">
                 <input type="hidden" class="form-control" id="id" name="id">
                 <input type="text" class="form-control"  name="title" placeholder="Enter title"/>
               </div>
-              {{-- <div class="form-group">
-                <label for="user_name">Price (0 days price)</label>
-                <input type="text" class="form-control"  name="price" placeholder="Enter price"/>
-              </div> --}}
               <div class="form-group">
                 <label for="user_name">Status</label>
                 <select class="form-control"  name="status">
-                    <option value="1">Active</option>
-                    <option value="0">Deactive</option>
+                  <option value="1">Active</option>
+                  <option value="0">Deactive</option>
                 </select>
+              </div>
+              <div class="form-group">
+                <label for="user_name">Description</label>
+                <textarea type="text" class="form-control"  name="description" placeholder="Details.."></textarea>
               </div>
             </form>
             </div>
@@ -114,8 +124,9 @@
                 $('#id').val(data.id);
                 $('input[name="type"]').val('edit');
                 $('input[name="title"]').val(data.title);
-                // $('input[name="price"]').val(data.price);
+                $('textarea[name="description"]').val(data.description);
                 $('select[name="status"]').val(data.status);
+                $('select[name="language_id"]').val(data.language_id);
                 $("#kkFormModal").modal('show');
               }
           });
@@ -198,7 +209,7 @@
   
               {data: 'DT_RowIndex', name: 'DT_RowIndex',orderable: false, searchable: false},
                 {data: 'title', name: 'title'},
-                // {data: 'price', name: 'price'},
+                {data: 'language_id', name: 'language_id'},
                 {data: 'status', name: 'status'},
                 {data: 'action', name: 'action', orderable: false, searchable: false},
   

@@ -48,17 +48,17 @@
                       @endif
                       @php
                         $pages_name[0]['name'] = 'About Us'; 
-                        $pages_name[0]['slug'] = 'about-us';
+                        $pages_name[0]['slug'] = 'about_us';
                         $pages_name[1]['name'] = 'Terms And Conditions'; 
-                        $pages_name[1]['slug'] = 'terms-and-conditions';
+                        $pages_name[1]['slug'] = 'terms_and_conditions';
                         $pages_name[2]['name'] = 'Refund Policy'; 
-                        $pages_name[2]['slug'] = 'refund-policy'; 
+                        $pages_name[2]['slug'] = 'refund_policy'; 
                         $pages_name[3]['name'] = 'Privacy Policy'; 
-                        $pages_name[3]['slug'] = 'privacy-policy'; 
+                        $pages_name[3]['slug'] = 'privacy_policy'; 
                         $pages_name[4]['name'] = 'Academic Integrity'; 
-                        $pages_name[4]['slug'] = 'academic-integrity'; 
+                        $pages_name[4]['slug'] = 'academic_integrity'; 
                         $pages_name[5]['name'] = 'Contact Us'; 
-                        $pages_name[5]['slug'] = 'contact-us'; 
+                        $pages_name[5]['slug'] = 'contact_us'; 
                       @endphp
 	                    <div class="form-group row">
 	                       <label class="col-lg-3 col-form-label" for="page_name">Page Name<span class="text-danger">*</span></label>
@@ -106,6 +106,27 @@
 	                           <small style="color: #ef0d0d;" id="details_content_error"></small>
 	                       </div>
 	                    </div>
+                        <div class="form-group row">
+                            <label class="col-lg-3 col-form-label" for="meta_title">Meta title</label>
+                            <div class="col-lg-8">
+                                <input class="form-control" id="meta_title" name="meta_title" placeholder="Enter meta title" >
+                                <small style="color: #ef0d0d;" id="meta_title_error"></small>
+                            </div>
+                         </div>
+                         <div class="form-group row">
+                            <label class="col-lg-3 col-form-label" for="meta_key">Meta key</label>
+                            <div class="col-lg-8">
+                                <input class="form-control" id="meta_key" name="meta_key" placeholder="Enter meta key.Separated by comma" >
+                                <small style="color: #ef0d0d;" id="meta_key_error"></small>
+                            </div>
+                         </div>
+                         <div class="form-group row">
+                            <label class="col-lg-3 col-form-label" for="meta_description">Meta description</label>
+                            <div class="col-lg-8">
+                                <textarea class="form-control"  id="meta_description" name="meta_description" placeholder="Enter meta description"></textarea>
+                                <small style="color: #ef0d0d;" id="meta_description_error"></small>
+                            </div>
+                         </div>
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label"></label>
                             <div class="col-lg-8 text-right">

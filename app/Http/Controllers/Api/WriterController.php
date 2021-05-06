@@ -18,8 +18,10 @@ class WriterController extends Controller
         $per_page = isset($_GET['per_page']) ? $_GET['per_page'] : 6 ;
 
         $query = User::select('users.*')
-            ->where('users.role', 'writer')
-            ->where('users.id', '!=', Auth::user()->id);
+            ->where('users.role', 'writer');
+        if( Auth::user()){
+            $query->where('users.id', '!=', Auth::user()->id);
+        }
         if(isset($_GET['searchText'])){
             $query->where('users.first_name', 'like', '%' . $_GET['searchText'] . '%');
         }

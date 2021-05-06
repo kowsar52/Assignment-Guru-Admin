@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\Review;
 use App\Models\VerificationToken;
 use Session;
+use App\Helper;
 use Auth,DB;
 use App\Mail\MasterMail;
 use Carbon\Carbon;
@@ -55,12 +56,13 @@ class AuthController extends Controller
         }
      
             $user = new User();
+            $user->username = Helper::strRandom();
             $user->first_name = $request->first_name;
             $user->last_name =  $request->last_name;
             $user->country = $country;
             $user->email 	= $request->email;
             $user->password = Hash::make($request->password);
-            $user->role = 'buyer';
+            // $user->role = 'buyer';
             $user->avater = Settings::getOption('default_avater');
             $user->status = 0;
             if($user->save())
@@ -93,6 +95,15 @@ class AuthController extends Controller
             }
 
         return response()->json(['status' => 'success','message'=>'Verification link has been sent to your '.$user->email.'. Click the link to activate your account. '], 200);
+    }
+
+    //updateRole
+    public function updateRole(Request $request){
+        User::where('id',Auth::user()->id)->update([
+            'role' => $request->role,
+            'updated_at' => Carbon::now(),
+        ]);
+        return response()->json(['success' => true,'message'=>'Updated!'], 200);
     }
 
     /**
@@ -379,7 +390,9 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         return response()->json([
-            'access_token' => $token,
+            'status' => 'success',
+            'user' => Auth::user(),
+            'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60
         ]);

@@ -14,7 +14,7 @@ class Notifications extends Model
 		return $this->belongsTo('App\Models\User')->first();
 	}
 
-	public static function send($destination, $session_id, $type, $target)
+	public static function send($destination, $session_id, $type, $target, $title)
 	{
 		$noty = new Notifications;
 
@@ -22,6 +22,7 @@ class Notifications extends Model
 		$noty->author      = $session_id;
 		$noty->type        = $type;
 		$noty->target      = $target;
+		$noty->title      = $title;
 		$noty->save();
 	}
 

@@ -74,10 +74,25 @@
 	                       </div>
 	                    </div>
 	                    <div class="form-group row">
+	                       <label class="col-lg-3 col-form-label" for="description_content">Short Description<span class="text-danger">*</span></label>
+	                       <div class="col-lg-8">
+	                           <textarea class="form-control"  id="short_description_content" name="short_description_content" placeholder="Enter description"></textarea>
+                               <input type="hidden" name="short_description" id="short_description">
+	                           <small style="color: #ef0d0d;" id="short_description_error"></small>
+	                       </div>
+	                    </div>
+	                    <div class="form-group row">
 	                       <label class="col-lg-3 col-form-label" for="image">Image<span class="text-danger">*</span></label>
 	                       <div class="col-lg-8">
 	                           <input type="file" class="form-control" id="image" name="image" accept="image/*">
 	                           <small style="color: #ef0d0d;" id="image_error"></small>
+	                       </div>
+	                    </div>
+	                    <div class="form-group row">
+	                       <label class="col-lg-3 col-form-label" for="image">Icon<span class="text-danger">*</span></label>
+	                       <div class="col-lg-8">
+	                           <input type="file" class="form-control" id="icon" name="icon" accept="image/*">
+	                           <small style="color: #ef0d0d;" id="icon_error"></small>
 	                       </div>
 	                    </div>
                         <div class="form-group row">
@@ -100,12 +115,17 @@
         CKEDITOR.replace('description_content', {
            allowedContent:true,
         });
+        CKEDITOR.replace('short_description_content', {
+           allowedContent:true,
+        });
     });
     
     $("#create_form").on('submit', function(e) {
         e.preventDefault();
         var desc = CKEDITOR.instances['description_content'].getData();
+        var short_desc = CKEDITOR.instances['short_description_content'].getData();
         $("#description").val(desc);
+        $("#short_description").val(short_desc);
         $('#submit_btn').html("prcessing..");
         $('#submit_btn').prop('disabled', true);
         $("#create_form small").html('');

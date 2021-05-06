@@ -19,6 +19,7 @@ use App\Models\Review;
 use App\Models\ThemeOrderContent;
 use App\Models\HomeWritingFeature;
 use App\Models\FrequentlyAskedQuestion;
+use App\Models\Page;
 use Carbon\Carbon;
 use Auth,Cache;
 
@@ -173,6 +174,17 @@ class FrontendController extends Controller
         ]);
     }
 
+    //get service from services table
+    public function getServiceTypes(){ //get 
+        $res = Service::where('language_id', $this->language_id)->get();
+        return response()->json($res);
+    }
+    //getPageContent
+    public function getPageContent($slug){ //get 
+        $res = Page::where('language_id', $this->language_id)->where('slug',$slug)->first();
+        return response()->json($res);
+    }
+
     //getReviews
     public function getReviews(){
         $res = Review::select('reviews.id','reviews.star','reviews.feedback','reviews.created_at','reviews.user_id as buyer_id','orders.topic as order_title','users.first_name','users.last_name')
@@ -221,6 +233,19 @@ class FrontendController extends Controller
                 'left_side' => $left_side,
                 'right_side' => $right_side,
             ],
+        ]);
+    }
+
+    //getHowToOrders
+    public function getHowToOrders(){
+        $res = ThemeOrderContent::where('language_id', $this->language_id)
+                        ->orderBy('created_at','asc')
+                        ->limit(3)
+                        ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $res,
         ]);
     }
 }

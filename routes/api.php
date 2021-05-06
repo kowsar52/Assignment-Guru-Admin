@@ -15,12 +15,13 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
+    Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
 
     Route::post('login', 'Api\AuthController@login');
     Route::post('register', 'Api\AuthController@register');
     Route::post('forgot-password', 'Api\AuthController@forgotPassword');
     Route::post('update-password', 'Api\AuthController@updatePassword')->name('update-password');
+    Route::post('account-role/update', 'Api\AuthController@updateRole')->name('update-role');
     Route::get('logout', 'Api\AuthController@logout');
     Route::get('refresh', 'Api\AuthController@refresh');
     Route::get('get-user', 'Api\AuthController@me');
@@ -30,13 +31,17 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
     Route::get('order-requirements', 'Api\OrderController@getOrderRequirements');
     Route::get('get-languages', 'Api\FrontendController@getLanguage');
     Route::post('/getCalculatorPrice', 'Api\FrontendController@getCalculatorPrice');
+    Route::get('/get-page-content/{slug}', 'Api\FrontendController@getPageContent');
 
     Route::get('/get-writers', 'Api\FrontendController@getWriters');
     Route::get('/get-services', 'Api\FrontendController@getServices');
+    Route::get('/get-service-types', 'Api\FrontendController@getServiceTypes');
     Route::get('/get-reviews', 'Api\FrontendController@getReviews');
     Route::get('/get-writing-service-features', 'Api\FrontendController@getWritingServiceFeatures');
     Route::get('/get-FAQs', 'Api\FrontendController@getFAQs');
-    
+    Route::get('/get-how_to_orders', 'Api\FrontendController@getHowToOrders');
+    Route::get('/user/writers/{status}', 'Api\WriterController@getWriters');
+    Route::get('user/get-user/{id}', 'Api\UserController@getUser');
     
     Route::middleware('auth:api')->prefix('user')->group(function () {
         Route::get('/get', 'Api\DashboardController@getUser');
@@ -58,13 +63,13 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
         Route::get('/bid/decline/{bid_id}', 'Api\BidController@declineBid')->middleware('role:buyer');
         Route::get('/bid/undo-decline/{bid_id}', 'Api\BidController@undoDeclineBid')->middleware('role:buyer');
 
-        Route::get('/writers/{status}', 'Api\WriterController@getWriters')->middleware('role:buyer');
+       
         Route::get('/invite-writers/{status}/{order_id}', 'Api\WriterController@getInviteWriters')->middleware('role:buyer');
 
         Route::post('/update-profile', 'Api\UserController@updateProfile');
         Route::get('/account/delete', 'Api\UserController@deleteAccount');
 
-        Route::get('/get-user/{id}', 'Api\UserController@getUser');
+        
 
         // Messages
         Route::get('messages', 'Api\MessagesController@inbox');
@@ -98,6 +103,10 @@ Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
         //feedback
         Route::get('order/get-feedbacks/{id}', 'Api\FeedbackController@getOrderFeedback');
         Route::post('order/feedback-submit', 'Api\FeedbackController@submitFeedback');
+        
+        //notifications
+        Route::get('get-notifications', 'Api\UserController@notifications');
+        Route::get('check-new-notifications', 'Api\UserController@checkNewNotifications');
         
     });
     Route::get('download/message/file/{id}','Api\MessagesController@downloadFileZip');

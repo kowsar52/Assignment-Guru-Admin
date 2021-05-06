@@ -45,6 +45,14 @@
                       <td>Password Reset Link</td>
                       <td>{password_reset_link}</td>
                     </tr>
+                    <tr>
+                      <td>Button Link/URL</td>
+                      <td>{button_link}</td>
+                    </tr>
+                    <tr>
+                      <td>Order Status</td>
+                      <td>{order_status}</td>
+                    </tr>
                   </tbody>
                 </table>
             </div>

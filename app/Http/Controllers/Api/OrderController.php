@@ -21,8 +21,10 @@ use App\Models\OrderStatus;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryFile;
 use App\Models\OrderStatusTrack;
+use App\Models\Notifications;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Mail\MasterMail;
 use Auth;
 
 class OrderController extends Controller
@@ -530,6 +532,27 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'created_at' => Carbon::now(),
             ]);
+        // Send Notification to User --- destination, author, type, target, title
+        $notify_user = User::findOrFail($order->writer);
+        if($notify_user->email_notifications){
+            Notifications::send($order->writer, auth()->user()->id, '1', $order->id,Auth::user()->username.' marked your order as '. OrderStatus::findOrFail(5)->name);
+        }
+        //send email notification
+        if($notify_user->email_notifications){       
+            $mail_data = array(       
+                "email_type" => 'writer_order_complete', 
+                'from_mail'      => Settings::getOption('from_mail'),
+                'from_name'      => Settings::getOption('from_name'),
+                "name" => $notify_user->name, 
+                "to_email" => $notify_user->email,  
+                "order_status" => OrderStatus::findOrFail(5)->name, 
+                "button_link" => Settings::getOption('app_url').'/user/manage_order/writer/'.$order->id, 
+
+            );
+            $mail_return = MasterMail::masterMail($mail_data);
+        }
+
+
             return response()->json(array(
                 'success' => true,
                 'message' => 'Order marked as completed successfully!',

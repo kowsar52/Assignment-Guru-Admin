@@ -19,6 +19,9 @@ class MasterMail
         if(isset($mailData['password_reset_link'])){
             $body = preg_replace("/{password_reset_link}/", $mailData['password_reset_link'] ,$body);
         }
+        if(isset($mailData['order_status'])){
+            $body = preg_replace("/{order_status}/", $mailData['order_status'] ,$body);
+        }
 
         $data = [
             'email_body' => $body
