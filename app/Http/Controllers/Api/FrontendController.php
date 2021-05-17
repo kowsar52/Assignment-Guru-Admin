@@ -21,7 +21,7 @@ use App\Models\HomeWritingFeature;
 use App\Models\FrequentlyAskedQuestion;
 use App\Models\Page;
 use Carbon\Carbon;
-use Auth,Cache;
+use Auth,Cache,DB;
 
 class FrontendController extends Controller
 {
@@ -187,7 +187,7 @@ class FrontendController extends Controller
 
     //getReviews
     public function getReviews(){
-        $res = Review::select('reviews.id','reviews.star','reviews.feedback','reviews.created_at','reviews.user_id as buyer_id','orders.topic as order_title','users.first_name','users.last_name')
+        $res = Review::select('reviews.id',DB::raw('CAST(reviews.star AS FLOAT) AS star'), 'reviews.feedback','reviews.created_at','reviews.user_id as buyer_id','orders.topic as order_title','users.first_name','users.last_name')
                         ->join('orders','orders.id','=','reviews.order_id')
                         ->join('users','users.id','=','orders.writer')
                         ->where('reviews.star', '>',3)

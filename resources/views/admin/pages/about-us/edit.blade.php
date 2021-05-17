@@ -47,18 +47,18 @@
                           </div>
                       @endif
                       @php
-                      $pages_name[0]['name'] = 'About Us'; 
-                      $pages_name[0]['slug'] = 'about_us';
-                      $pages_name[1]['name'] = 'Terms And Conditions'; 
-                      $pages_name[1]['slug'] = 'terms_and_conditions';
-                      $pages_name[2]['name'] = 'Refund Policy'; 
-                      $pages_name[2]['slug'] = 'refund_policy'; 
-                      $pages_name[3]['name'] = 'Privacy Policy'; 
-                      $pages_name[3]['slug'] = 'privacy_policy'; 
-                      $pages_name[4]['name'] = 'Academic Integrity'; 
-                      $pages_name[4]['slug'] = 'academic_integrity'; 
-                      $pages_name[5]['name'] = 'Contact Us'; 
-                      $pages_name[5]['slug'] = 'contact_us'; 
+                    $pages_name[0]['name'] = 'About Us'; 
+                        $pages_name[0]['slug'] = 'about-us';
+                        $pages_name[1]['name'] = 'Terms And Conditions'; 
+                        $pages_name[1]['slug'] = 'terms-conditions';
+                        $pages_name[2]['name'] = 'Refund Policy'; 
+                        $pages_name[2]['slug'] = 'refund-policy'; 
+                        $pages_name[3]['name'] = 'Privacy Policy'; 
+                        $pages_name[3]['slug'] = 'privacy-policy'; 
+                        $pages_name[4]['name'] = 'Academic Integrity'; 
+                        $pages_name[4]['slug'] = 'academic-integrity'; 
+                        $pages_name[5]['name'] = 'Contact Us'; 
+                        $pages_name[5]['slug'] = 'contact'; 
                     @endphp
 	                    <div class="form-group row">
 	                       <label class="col-lg-3 col-form-label" for="page_name">Page Name<span class="text-danger">*</span></label>
