@@ -139,4 +139,9 @@ Route::group(['middleware'=>['admin']],function(){
     
     //payment getway
     Route::get('admin/payment-getways', 'Admin\ReviewController@PaymentGetWay');
+
+    	//Withdrawals
+ 	Route::get('admin/withdrawals','Admin\WithdrawlController@withdrawals');
+ 	Route::get('admin/withdrawal/{id}','Admin\WithdrawlController@withdrawalsView');
+ 	Route::get('admin/withdrawals/paid/{id}','Admin\WithdrawlController@withdrawalsPaid');
 });

@@ -57,6 +57,8 @@ class User extends Authenticatable implements JWTSubject
         'created_at',
         'last_seen',
         'deleted_at',
+        'referal_username',
+        'stripe_connect_id',
         'updated_at'
     ];
 
@@ -76,8 +78,8 @@ class User extends Authenticatable implements JWTSubject
       }
 
 
-      public function withdrawals()
-      {
+    public function withdrawals()
+    {
         return $this->hasMany('App\Models\Withdrawals');
     }
 
@@ -93,8 +95,13 @@ class User extends Authenticatable implements JWTSubject
 
       public function messagesInbox()
       {
-            return $this->hasMany('App\Models\Messages', 'to_user_id')->where('status','new')->count();
-        }
+          return $this->hasMany('App\Models\Messages', 'to_user_id')->where('status','new')->count();
+      }
+      
+      public function payment_methods()
+      {
+          return $this->hasMany('App\Models\UserPaymentMethod', 'user_id','id')->first();
+      }
 
 
 

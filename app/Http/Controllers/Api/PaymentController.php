@@ -9,6 +9,7 @@ use App\Models\Settings;
 use App\Models\Bid;
 use App\Models\Order;
 use App\Models\WriterOrder;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Auth;
 use Session;
@@ -25,7 +26,7 @@ use PayPal\Api\Payment;
 use PayPal\Api\RedirectUrls;
 use PayPal\Api\ExecutePayment;
 use PayPal\Api\PaymentExecution;
-use PayPal\Api\Transaction;
+// use PayPal\Api\Transaction;
 
 class PaymentController extends Controller
 {
@@ -104,6 +105,19 @@ class PaymentController extends Controller
                             'status' => 1,
                             'created_at' => Carbon::now(),
                         ]);
+                        //add transaction
+                        Transaction::insert([
+                            'txn_id' => $res->id,
+                            'user_id' => Auth::user()->id,
+                            'receiver_id' => 0, //admin
+                            'type' => 1, //1 = order payment, 2 = withdraw , 3 = affiliate commission 
+                            'description' => $description, 
+                            'payment_method' => 'stripe', 
+                            'amount' => Settings::getOption('currency_code') == 'JPY' ? $amount : ($amount / 100),
+                            'ref_id' =>$bid->order_id, 
+                            'status' => $res->status,
+                            'created_at' => Carbon::now(),
+                        ]);
     
                         //send message 
                         $token = $request->header('Authorization');
@@ -153,6 +167,20 @@ class PaymentController extends Controller
                     'created_at' => Carbon::now(),
                 ]);
 
+                //add transaction
+                Transaction::insert([
+                    'txn_id' => $request->payment_id,
+                    'user_id' => Auth::user()->id,
+                    'receiver_id' => 0, //admin
+                    'type' => 1, //1 = order payment, 2 = withdraw , 3 = affiliate commission 
+                    'description' => 'order created', 
+                    'payment_method' => 'paypal', 
+                    'amount' => $bid->bidding_price,
+                    'ref_id' => $bid->order_id, 
+                    'status' => $request->status,
+                    'created_at' => Carbon::now(),
+                ]);
+
                 //send message 
                 $token = $request->header('Authorization');
                 $response = Http::withHeaders([
@@ -161,8 +189,13 @@ class PaymentController extends Controller
                     'id_user' =>$bid->writer_id,
                     'message' => 'Order Confirmed!',
                 ]);
+                return response()->json(['status' => 'succeeded','order_id' =>  $bid->order_id]);
+            }else{
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'payment failed',
+                ]);
             }
-            return response()->json(['status' => 'success']);
 
 
         }

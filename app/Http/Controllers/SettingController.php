@@ -15,8 +15,9 @@ class SettingController extends Controller
     		{
     			if($key == 'favicon' || $key == 'logo' || $key == 'default_avater')
     			{
+    		
     				$image_name = time().'-'.rand(10000,99999).'.'.$set->getClientOriginalExtension();
-                	$set->move("assets/logo", $image_name);
+                	$set->move(public_path("assets/logo"), $image_name);
                 	$image_path = "assets/logo/" . $image_name;
     				$setting = Settings::where('name',$key)->first();
 			        $photo_path = public_path().'/'.$setting->value;

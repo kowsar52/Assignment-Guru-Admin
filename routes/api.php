@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+// Route::get('/user/stripe', 'Api\TransactionController@createStripe');
 
     Route::get('/get-trans/{lang_id}/{page}', 'Api\LanguageController@get');
 
@@ -68,6 +68,8 @@ use Illuminate\Support\Facades\Route;
 
         Route::post('/update-profile', 'Api\UserController@updateProfile');
         Route::get('/account/delete', 'Api\UserController@deleteAccount');
+        //referral route
+        Route::get('/get-referral-users', 'Api\UserController@getReferralUsers');
 
         
 
@@ -107,6 +109,11 @@ use Illuminate\Support\Facades\Route;
         //notifications
         Route::get('get-notifications', 'Api\UserController@notifications');
         Route::get('check-new-notifications', 'Api\UserController@checkNewNotifications');
+
+        Route::get('get-transactions', 'Api\TransactionController@getTransactions');
+        Route::get('stripe-express-connect', 'Api\TransactionController@createExpressAccount');
+        Route::get('make-withdrawls', 'Api\TransactionController@makeWithdrawals');
+      
         
     });
     Route::get('download/message/file/{id}','Api\MessagesController@downloadFileZip');

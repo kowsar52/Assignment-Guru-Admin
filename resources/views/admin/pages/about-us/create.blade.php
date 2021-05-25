@@ -47,18 +47,24 @@
                           </div>
                       @endif
                       @php
-                        $pages_name[0]['name'] = 'About Us'; 
-                        $pages_name[0]['slug'] = 'about-us';
-                        $pages_name[1]['name'] = 'Terms And Conditions'; 
-                        $pages_name[1]['slug'] = 'terms-conditions';
-                        $pages_name[2]['name'] = 'Refund Policy'; 
-                        $pages_name[2]['slug'] = 'refund-policy'; 
-                        $pages_name[3]['name'] = 'Privacy Policy'; 
-                        $pages_name[3]['slug'] = 'privacy-policy'; 
-                        $pages_name[4]['name'] = 'Academic Integrity'; 
-                        $pages_name[4]['slug'] = 'academic-integrity'; 
-                        $pages_name[5]['name'] = 'Contact Us'; 
-                        $pages_name[5]['slug'] = 'contact'; 
+                 $pages_name[0]['name'] = 'About Us'; 
+                      $pages_name[0]['slug'] = 'about-us';
+                      $pages_name[1]['name'] = 'Terms And Conditions'; 
+                      $pages_name[1]['slug'] = 'terms-conditions';
+                      $pages_name[2]['name'] = 'Refund Policy'; 
+                      $pages_name[2]['slug'] = 'refund-policy'; 
+                      $pages_name[3]['name'] = 'Privacy Policy'; 
+                      $pages_name[3]['slug'] = 'privacy-policy'; 
+                      $pages_name[4]['name'] = 'Academic Integrity'; 
+                      $pages_name[4]['slug'] = 'academic-integrity'; 
+                      $pages_name[5]['name'] = 'Contact Us'; 
+                      $pages_name[5]['slug'] = 'contact-us'; 
+                      $pages_name[6]['name'] = 'FAQ'; 
+                        $pages_name[6]['slug'] = 'faq'; 
+                      $pages_name[7]['name'] = 'Becoma A Writer'; 
+                        $pages_name[7]['slug'] = 'become-writer'; 
+                      $pages_name[8]['name'] = 'Recommendations'; 
+                        $pages_name[8]['slug'] = 'recommendations';
                       @endphp
 	                    <div class="form-group row">
 	                       <label class="col-lg-3 col-form-label" for="page_name">Page Name<span class="text-danger">*</span></label>

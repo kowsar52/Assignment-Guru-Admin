@@ -24,6 +24,8 @@ use App\Models\OrderStatus;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryFile;
 use App\Models\OrderStatusTrack;
+use App\Models\Notifications;
+use App\Models\User;
 use App\Helper;
 use Illuminate\Support\Facades\Http;
 use Auth, Validator, Image;
@@ -336,11 +338,18 @@ class OrderController extends Controller
                     'message' => $request->message,
                     'created_at' => Carbon::now(),
                 ]);
+
+            // Send Notification to User --- destination, author, type, target, title
+            $notify_user = User::findOrFail($order->customer);
+            if($notify_user->email_notifications){
+                Notifications::send($order->customer, auth()->user()->id, '1', $order->id,'<strong>'.Auth::user()->username.'</strong> Send You Order Delivery');
             }
+
             return response()->json(array(
                 'success' => true,
                 'order_id' => $order->id,
             ), 200);
+            }
 
         }
 

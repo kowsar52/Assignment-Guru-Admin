@@ -3,7 +3,7 @@
 namespace App;
 
 use Image;
-use App\Models\AdminSettings;
+use App\Models\Settings;
 
 class Helper
 {
@@ -292,7 +292,7 @@ public static function resizeImageFixed( $image, $width, $height, $imageNew = nu
 
 	public static function formatDate($date, $time = false)
 	{
-		$settings = AdminSettings::first();
+		$settings = Settings::first();
 
 		if ($time == false) {
 			$date = strtotime($date);
@@ -336,7 +336,7 @@ public static function resizeImageFixed( $image, $width, $height, $imageNew = nu
 
 	public static function amountFormat($value) {
 
-		$settings = AdminSettings::first();
+		$settings = Settings::first();
 
 		if($settings->currency_position == 'left') {
 			$amount = $settings->currency_symbol.number_format($value);
@@ -352,7 +352,7 @@ public static function resizeImageFixed( $image, $width, $height, $imageNew = nu
 
 	public static function amountWithoutFormat($value) {
 
-		$settings = AdminSettings::first();
+		$settings = Settings::first();
 
 		if($settings->currency_position == 'left') {
 			$amount = $settings->currency_symbol.$value;
@@ -432,27 +432,17 @@ public static function resizeImageFixed( $image, $width, $height, $imageNew = nu
 
 	public static function amountFormatDecimal($value)
   {
- 	 $settings = AdminSettings::first();
 
-	 if ($settings->currency_code == 'JPY') {
-		 return $settings->currency_symbol.number_format($value);
+	 if (Settings::getOption('currency_code') == 'JPY') {
+		 return Settings::getOption('currency').number_format($value);
 	 }
 
- 	 if ($settings->decimal_format == 'dot') {
- 		 $decimalDot = '.';
- 		 $decimalComma = ',';
- 	 } else {
- 		 $decimalDot = ',';
- 		 $decimalComma = '.';
- 	 }
+ 	
+		$decimalDot = '.';
+		$decimalComma = ',';
 
- 	 if ($settings->currency_position == 'left') {
- 		 $amount = $settings->currency_symbol.number_format($value, 2, $decimalDot, $decimalComma);
- 	 } elseif ($settings->currency_position == 'right') {
- 		 $amount = number_format($value, 2, $decimalDot, $decimalComma).$settings->currency_symbol;
- 	 } else {
- 		 $amount = $settings->currency_symbol.number_format($value, 2, $decimalDot, $decimalComma);
- 	 }
+ 		 $amount = Settings::getOption('currency').number_format($value, 2, $decimalDot, $decimalComma);
+
 
  	return $amount;
 

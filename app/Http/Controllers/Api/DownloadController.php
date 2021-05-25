@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryFile;
-use Storage,Auth;
+use Illuminate\Support\Facades\Storage;
+use Auth;
 
 class DownloadController extends Controller
 {
@@ -22,10 +23,10 @@ class DownloadController extends Controller
                                 })->first();
          if(!empty( $data)){
              $path = config('path.delivery');
-             $filePath  = public_path('/storage/'.config('path.delivery').$data->file);
+             $filePath  = config('path.delivery').$data->file;
              $fileName = time().'.'.$data->format;
      
-             return response()->download($filePath,$fileName);
+             return Storage::download($filePath);
          }                       
     }
 }

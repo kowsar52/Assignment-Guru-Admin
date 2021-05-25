@@ -16,6 +16,7 @@ use App\Helper;
 use Auth,DB;
 use App\Mail\MasterMail;
 use Carbon\Carbon;
+use App\Models\Referal;
 use JWTAuth;
 use Cache;
 
@@ -54,6 +55,29 @@ class AuthController extends Controller
         }else{
             $country = $this->ip_info($ip = null, $purpose = "country", $deep_detect = TRUE);
         }
+
+        //affiliate checking part start
+        if ($request->affiliate) {
+            $affilate_user = User::where('username','=',$request->affiliate)->first();
+
+			if(!empty($affilate_user))
+			{
+				if(Settings::getOption('is_affilate') == 1)
+
+				{
+                    $referal_userID = $affilate_user->id;
+
+				}
+
+			}else{
+                $referal_userID = null;
+            }
+           
+        } else {
+            $referal_userID = null;
+        }
+        //affiliate checking part end
+
      
             $user = new User();
             $user->username = Helper::strRandom();
@@ -62,11 +86,21 @@ class AuthController extends Controller
             $user->country = $country;
             $user->email 	= $request->email;
             $user->password = Hash::make($request->password);
+            $user->referal_username = $referal_userID;
             // $user->role = 'buyer';
             $user->avater = Settings::getOption('default_avater');
             $user->status = 0;
             if($user->save())
             {
+                if ($request->affiliate) {
+                    Referal::insert([
+                        'user_id' => $user->id,
+                        'inviter_id' => $user->referal_username,
+                        'bonous_credit' => 0,
+                        'created_at'     => Carbon::now(),
+                      ]);                   
+                }
+           
                     $verification_token = bin2hex(random_bytes(20));
                     VerificationToken::insert([
                         'user_id' => $user->id,

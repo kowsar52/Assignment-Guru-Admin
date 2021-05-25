@@ -12,6 +12,8 @@ use App\Models\WriterOrder;
 use App\Models\Notifications;
 use App\Models\Messages;
 use App\Models\Review;
+use App\Models\Referal;
+use App\Helper;
 use Auth,Cache,DB;
 use Illuminate\Support\Str;
 
@@ -37,7 +39,7 @@ class UserController extends Controller
             $image_type_aux = explode("image/", $image_parts[0]);
             $image_type = $image_type_aux[1];
             $image_base64 = base64_decode($image_parts[1]);
-            $name =  uniqid() . '. '.$image_type;
+            $name =  uniqid() .'.'.$image_type;
 
             file_put_contents(public_path('uploads/user/'.$name), $image_base64);
             $avater = 'uploads/user/'.$name;
@@ -80,14 +82,14 @@ class UserController extends Controller
     //getUser
     public function getUser($id){
         $user = User::findOrFail($id);
-        if(Auth::user() && Auth::user()->role == 'writer'){
-            $total_orders = WriterOrder::where('writer_id',$user->id)->where('status',3)->count();
+        if($user->role == 'writer'){
+            $total_orders = WriterOrder::where('writer_id',$user->id)->where('status',5)->count();
             $total_review = Review::where('user_id',$user->id)->where('type','writer')->count();
             $reviews = Review::where('user_id',$user->id)->where('type','writer')->get();
             $avg_rating = Review::where('user_id',$user->id)->where('type','writer')->avg('star');
             
         }else{    
-            $total_orders = Order::where('customer',$user->id)->where('status',3)->count();
+            $total_orders = Order::where('customer',$user->id)->where('status',5)->count();
             $total_review = Review::where('user_id',$user->id)->where('type','buyer')->count();
             $reviews = Review::where('user_id',$user->id)->where('type','buyer')->get();
             $avg_rating = Review::where('user_id',$user->id)->where('type','buyer')->avg('star');
@@ -212,8 +214,24 @@ class UserController extends Controller
         $getNotifications = Notifications::where('destination', Auth::user()->id)->where('status', '0');
         $getmessages = Messages::where('to_user_id', Auth::user()->id)->where('status', 'new');
         return response()->json([
-            'unseen_notifications' =>  $getNotifications->count(),
-            'unseen_messages' =>  $getmessages->count(),
+            'total_notifications' =>  $getNotifications->count(),
+            'total_messages' =>  $getmessages->count(),
+        ]);
+    }
+
+    //referral 
+    public function getReferralUsers(){
+        $user = Auth::user();
+        $referral_users = Referal::select('referals.id','referals.bonous_credit','referals.created_at','users.avater','users.username','users.first_name')->join('users','users.id','referals.user_id')
+                            ->where('referals.inviter_id',$user->id)->orderBy('referals.id','desc')->paginate($_GET['per_page']);
+        $total_referral_user = Referal::where('inviter_id',$user->id)->count();
+        $total_earning_amount = Referal::where('inviter_id',$user->id)->sum('bonous_credit');
+        return response()->json([
+            'user' =>  $user,
+            'refer_link' =>  Settings::getOption('app_url').'/?reff='.$user->username,
+            'referral_users' =>  $referral_users,
+            'total_earning_amount' =>  Helper::amountFormatDecimal($total_earning_amount),
+            'total_referral_user' =>  $total_referral_user,
         ]);
     }
 }

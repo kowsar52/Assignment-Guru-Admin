@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\WriterOrder;
 use App\Models\EducationLevel;
 use App\Models\Language;
 use App\Models\Service;
@@ -22,10 +23,13 @@ use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryFile;
 use App\Models\OrderStatusTrack;
 use App\Models\Notifications;
+use App\Models\Transaction; 
+use App\Models\Referal; 
 use App\Models\User;
+use App\Helper;
 use Carbon\Carbon;
 use App\Mail\MasterMail;
-use Auth;
+use Auth,DB;
 
 class OrderController extends Controller
 {
@@ -83,8 +87,9 @@ class OrderController extends Controller
                 'words_count' => 275,
                 'space' => "double",
                 'sources' => $sources,
+                'all_currency' => DB::table('helper_country')->where('currency_code','!=','')->groupBy('currency_code')->orderBy('currency_code','asc')->get(),
             ]
-        ], 200);
+        ], 200,[], JSON_NUMERIC_CHECK);
     }
 
     //get total price 
@@ -152,7 +157,7 @@ class OrderController extends Controller
             'sub_total_price' => number_format($sub_total_price,2,".",','),
             'discount_percentage' => $discount_percentage,
             'diff_duration' => $diff_duration,
-        ]);
+        ],200,[], JSON_NUMERIC_CHECK);
     }
 
     static function getPriceStatic($request){
@@ -260,13 +265,12 @@ class OrderController extends Controller
         
             $res[] = array_merge($order->toArray() , $extra);
         }
-
         return response()->json([
             'status' => 'success',
             'data'=> [
                 'data' => $res
             ],
-        ], 200);
+        ], 200,[], JSON_NUMERIC_CHECK);
     }
 
     //get getOrder
@@ -282,7 +286,7 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'data' => $order,
-        ]);
+        ],200,[], JSON_NUMERIC_CHECK);
     }
 
     //getOrderDeliveryFiles
@@ -315,7 +319,7 @@ class OrderController extends Controller
 
         }
 
-        return response()->json($res);
+        return response()->json($res,200,[], JSON_NUMERIC_CHECK);
     }
 
     //delete order
@@ -382,7 +386,7 @@ class OrderController extends Controller
             'subject' => $order->subject ? Subject::findOrFail($order->subject)->title : '',
             'deadline' => date('d M Y, h:i:s A',strtotime($order->deadline)),
             'UTCdeadline' => date('d M Y, h:i:s A',strtotime($order->UTCdeadline)),
-        ]);
+        ],200,[], JSON_NUMERIC_CHECK);
     }
 
     //create order
@@ -403,7 +407,7 @@ class OrderController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'errors' => $v->errors()
-                ], 200);
+                ], 200,[], JSON_NUMERIC_CHECK);
             }
             
             $today = date("Y-m-d H:i:s");
@@ -441,7 +445,7 @@ class OrderController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'errors' => ['deadline' => "Please select a deadline greater then today"]
-                ], 200);
+                ],200,[], JSON_NUMERIC_CHECK);
             }
 
         }else{ //update existing order
@@ -515,7 +519,7 @@ class OrderController extends Controller
         return response()->json([
             'status' => 'success',
             'data'=> $order
-        ], 200);
+        ], 200,[], JSON_NUMERIC_CHECK);
     }
 
     //complete order
@@ -527,15 +531,63 @@ class OrderController extends Controller
                 'isCompleted' => 1, //completede
                 'updated_at' => Carbon::now(),
             ]);
+            WriterOrder::where('order_id',$order->id)->update([
+                'status' => 5, //completed
+                'updated_at' => Carbon::now(),
+            ]);
             OrderStatusTrack::insert([
                 'status_id' => 5, //completed
                 'order_id' => $order->id,
                 'created_at' => Carbon::now(),
             ]);
+            
+            //writer earning calculation
+            $admin_earning = ($order->paid_amount * Settings::getOption('order_service_fee_percentage')) / 100 ; //10.8
+            $writer_earning = $order->paid_amount - $admin_earning ; //16.2
+
+            //add writer balance
+            $writer = User::find($order->writer);
+            $writer->balance = $writer->balance + $writer_earning;
+            $writer->update();
+            
+                    
+            //add transaction
+            Transaction::insert([
+                'txn_id' => 'tnx_'.$order->writer.Helper::strRandom(),
+                'user_id' => 0,//admin
+                'receiver_id' => $order->writer, 
+                'type' => 1, //1 = order payment, 2 = withdraw , 3 = affiliate commission 
+                'description' => 'Order Revenue', 
+                'payment_method' => 'system', 
+                'amount' => $writer_earning,
+                'ref_id' =>$order->id, 
+                'status' => 'succeeded',
+                'created_at' => Carbon::now(),
+            ]);
+
+            //referal section start
+            if(Auth::user()->referal_username){ //spend balance
+                $referalEarning = ($admin_earning * Settings::getOption('afiiliate_commission')) / 100;
+                $ref_user = User::find(Auth::user()->referal_username);
+                $ref_user->balance = $ref_user->balance + $referalEarning;
+                $ref_user->update();
+                
+                
+                Referal::where('user_id',Auth::user()->id)->where('inviter_id',$ref_user->id)->update([
+                  'bonous_credit' => Referal::where('user_id',Auth::user()->id)->where('inviter_id',$ref_user->id)->first()->bonous_credit + $referalEarning,
+                ]);
+               
+                if($ref_user->email_notifications){
+                    // Send Notification to User --- destination, author, type, target, title
+                    Notifications::send($ref_user->id, auth()->user()->id, '2', $order->id,'Affiliate Commission From <strong>'.Auth::user()->username.'</strong>');
+                }
+              }
+            //referal section end
+
         // Send Notification to User --- destination, author, type, target, title
         $notify_user = User::findOrFail($order->writer);
         if($notify_user->email_notifications){
-            Notifications::send($order->writer, auth()->user()->id, '1', $order->id,Auth::user()->username.' marked your order as '. OrderStatus::findOrFail(5)->name);
+            Notifications::send($order->writer, auth()->user()->id, '1', $order->id,'<strong>'.Auth::user()->username.'</strong> marked your order as '. OrderStatus::findOrFail(5)->name);
         }
         //send email notification
         if($notify_user->email_notifications){       
